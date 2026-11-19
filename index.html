@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>melou — credit & reviews</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Nunito & Mitr / Prompt สำหรับฟอนต์ทรงกลมละมุนตามภาพ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tone.js สำหรับเสียงเพลงบรรเลงน่ารักๆ (ไม่ต้องพึ่งลิงก์เสียงภายนอกที่อาจเสีย) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #faf5f5;
+            --bg-card: #ffffff;
+            --text-primary: #6b6363;
+            --text-secondary: #9e9595;
+            --btn-gray: #d8d5d5;
+            --btn-gray-hover: #cbc7c7;
+            --border-soft: #f2ecec;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', 'Mitr', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* พื้นหลังลายดาวและหัวใจเส้นบางๆ ลอยละมุน */
+        #bg-decorations {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-doodle {
+            position: absolute;
+            color: #dcd4d4;
+            opacity: 0.65;
+            animation: floatSlow 9s ease-in-out infinite;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(6deg); }
+        }
+
+        /* การ์ดหลักสไตล์ซอฟต์มินิมอล */
+        .soft-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            border-radius: 26px;
+            box-shadow: 0 8px 28px rgba(175, 155, 155, 0.08);
+            border: 1px solid rgba(242, 234, 234, 0.9);
+        }
+
+        .soft-pill-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            box-shadow: 0 6px 22px rgba(175, 155, 155, 0.09);
+            border: 1px solid rgba(242, 234, 234, 0.95);
+        }
+
+        .soft-inner-card {
+            background: #ffffff;
+            border-radius: 22px;
+            box-shadow: 0 4px 16px rgba(175, 155, 155, 0.06);
+            border: 1px solid #f4eeee;
+        }
+
+        .soft-input {
+            background: #ffffff;
+            border: 1.5px solid #f0e8e8;
+            border-radius: 18px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .soft-input:focus {
+            outline: none;
+            border-color: #d6c8c8;
+            box-shadow: 0 0 0 3px rgba(216, 213, 213, 0.25);
+        }
+
+        .soft-input::placeholder {
+            color: #b8b0b0;
+            font-weight: 300;
+        }
+
+        .btn-soft-gray {
+            background-color: var(--btn-gray);
+            color: #635c5c;
+            border-radius: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-soft-gray:hover {
+            background-color: var(--btn-gray-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-soft-gray:active {
+            transform: translateY(0px) scale(0.99);
+        }
+
+        /* ลายแบนเนอร์เริ่มต้นแบบลายจุดดาวหัวใจน่ารัก */
+        .default-banner-pattern {
+            background-color: #fcfafa;
+            background-image: 
+                radial-gradient(#e5dcdc 1.5px, transparent 1.5px),
+                radial-gradient(#efe7e7 1.5px, #fcfafa 1.5px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #faf5f5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dfd7d7;
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body class="pb-28 pt-4 px-4 sm:px-6">
+
+    <!-- พื้นหลังดาวและหัวใจเส้นบางๆ -->
+    <div id="bg-decorations" aria-hidden="true"></div>
+
+    <!-- Container หลักขนาดกะทัดรัดตรงกลางเหมือนหน้าจอมือถือ/มินิเว็บ -->
+    <div class="relative z-10 max-w-[440px] mx-auto space-y-4">
+
+        <!-- 1. Sticky Top Bar -->
+        <header class="sticky top-3 z-30 soft-pill-bar px-5 py-2.5 flex items-center justify-between">
+            <a href="#top" id="topbar-shop-name" class="text-[19px] font-extrabold tracking-tight text-[#6b6363] select-none">
+                melou
+            </a>
+            <a href="#review-section" class="bg-[#d8d5d5] hover:bg-[#cbc7c7] text-[#6b6363] text-[13px] font-bold px-4 py-1 rounded-full transition-all active:scale-95">
+                credit
+            </a>
+        </header>
+
+        <!-- 2. Profile Card -->
+        <section id="top" class="soft-card p-3.5">
+            <!-- Banner -->
+            <div class="relative w-full h-[145px] rounded-[20px] overflow-hidden default-banner-pattern border border-[#f2ecec]">
+                <img id="shop-banner-img" src="" alt="Banner" class="w-full h-full object-cover hidden">
+                
+                <!-- ลายน้ำดาวหัวใจกลางแบนเนอร์ (แสดงเมื่อใช้แบนเนอร์เริ่มต้น) -->
+                <div id="default-banner-overlay" class="w-full h-full flex flex-col items-center justify-center relative select-none">
+                    <!-- ดาวและหัวใจตกแต่งบนแบนเนอร์ -->
+                    <svg class="w-5 h-5 text-[#cfc7c7] absolute top-6 left-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                    </svg>
+                    <svg class="w-4 h-4 text-[#d5cdcd] mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <span id="banner-watermark-name" class="text-[11px] font-semibold text-[#b3aaaa] tracking-wider">melou</span>
+                    <svg class="w-5 h-5 text-[#cfc7c7] absolute bottom-5 right-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Avatar & Shop Name Row -->
+            <div class="px-3 flex items-end gap-3.5 -mt-10 relative z-10">
+                <div class="w-[84px] h-[84px] rounded-full bg-white p-1 shadow-md border border-[#f2ecec] shrink-0 overflow-hidden">
+                    <img id="shop-avatar-img" 
+                         src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80" 
+                         onerror="this.src='https://placehold.co/200x200/f7efef/8c8282?text=melou'"
+                         alt="melou profile" 
+                         class="w-full h-full object-cover rounded-full">
+                </div>
+                <div class="pb-2">
+                    <h1 id="profile-shop-name" class="text-[22px] font-extrabold text-[#6b6363] leading-tight">
+                        melou
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Stats 2 Columns -->
+            <div class="grid grid-cols-2 text-center mt-5 mb-4 px-4">
+                <div>
+                    <div id="stat-reviews-count" class="text-[18px] font-extrabold text-[#6b6363]">0</div>
+                    <div class="text-[11px] font-semibold tracking-wider text-[#9e9595] uppercase">REVIEWS</div>
+                </div>
+                <div>
+                    <div id="stat-followers-count" class="text-[18px] font-extrabold text-[#6b6363]">20</div>
+                    <div class="text-[11px] font-semibold tracking-wider text-[#9e9595] uppercase">FOLLOWERS</div>
+                </div>
+            </div>
+
+            <!-- Follow Button -->
+            <div class="px-2">
+                <button id="btn-follow" onclick="toggleFollow()" class="w-full py-2.5 btn-soft-gray text-[14px] font-medium shadow-xs cursor-pointer">
+                    ติดตาม
+                </button>
+            </div>
+
+            <!-- Divider & Bio/Credit Note -->
+            <div class="mt-4 pt-3 border-t border-[#f3eded] px-2 flex items-center justify-between">
+                <p id="profile-bio-text" class="text-[13px] text-[#7a7171] font-normal">
+                    thank you for credit ♡
+                </p>
+                <span id="sync-indicator" class="text-[10px] text-[#b8b0b0] flex items-center gap-1" title="เชื่อมต่อฐานข้อมูลเรียลไทม์">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> live
+                </span>
+            </div>
+        </section>
+
+        <!-- 3. Thin Capsule Spacer -->
+        <div class="soft-pill-bar h-6 w-full opacity-90" aria-hidden="true"></div>
+
+        <!-- 4. Write Review Card ('review for me') -->
+        <section id="review-section" class="soft-card p-5 space-y-3.5">
+            <h2 class="text-[16px] font-extrabold text-[#6b6363]">review for me</h2>
+            
+            <!-- Star Rating Selector -->
+            <div class="space-y-1.5">
+                <label class="block text-[13px] text-[#8a8181] font-normal">ให้คะแนนดาว:</label>
+                <div id="star-selector" class="flex items-center gap-1.5">
+                    <!-- Stars generated by JS -->
+                </div>
+            </div>
+
+            <!-- Reviewer Name Input -->
+            <div>
+                <input type="text" id="input-reviewer-name" maxlength="30" placeholder="ชื่อหรือโค้ดเนม" 
+                       class="w-full px-4 py-2.5 soft-input text-[14px]">
+            </div>
+
+            <!-- Review Message Input -->
+            <div>
+                <textarea id="input-review-comment" rows="3" maxlength="250" placeholder="เขียนรีวิวความประทับใจ..." 
+                          class="w-full px-4 py-2.5 soft-input text-[14px] resize-none"></textarea>
+            </div>
+
+            <!-- Submit Review Button -->
+            <button id="btn-submit-review" onclick="submitReview()" class="w-full py-2.5 btn-soft-gray text-[14px] font-medium cursor-pointer">
+                ส่งรีวิว
+            </button>
+        </section>
+
+        <!-- 5. Total Star Percentage Card -->
+        <section class="soft-card py-3.5 px-5 text-center">
+            <div class="text-[12px] text-[#9e9595] font-normal">ดาวทั้งหมด</div>
+            <div id="stat-star-percentage" class="text-[18px] font-extrabold text-[#6b6363] mt-0.5">100%</div>
+        </section>
+
+        <!-- 6. All Reviews List Card -->
+        <section class="soft-card p-5 space-y-3.5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-[15px] font-extrabold text-[#6b6363]">รีวิวทั้งหมด</h2>
+                <span id="admin-badge-hint" class="hidden text-[11px] bg-[#f3eded] text-[#7a7171] px-2.5 py-0.5 rounded-full font-medium">
+                    โหมดแอดมิน (กดปุ่มถังขยะเพื่อลบรีวิว)
+                </span>
+            </div>
+
+            <!-- Reviews Container -->
+            <div id="reviews-list" class="space-y-3">
+                <!-- Loading Skeleton -->
+                <div class="text-center py-6 text-[13px] text-[#b0a7a7]">กำลังโหลดข้อมูลรีวิว...</div>
+            </div>
+        </section>
+
+        <!-- 7. Footer -->
+        <footer class="text-center pt-2 pb-4">
+            <p id="footer-copyright" class="text-[11px] text-[#9e9595]">
+                © 2026 melou. All rights reserved.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Floating Bottom Left: Music Button -->
+    <button id="btn-music-toggle" onclick="toggleMusic()" aria-label="เปิด/ปิดเพลงบรรเลง"
+            class="fixed bottom-5 left-5 z-40 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-[#f2ecec] flex items-center justify-center text-[#6b6363] hover:scale-105 active:scale-95 transition-all cursor-pointer">
+        <!-- Muted Icon (Default) -->
+        <svg id="icon-music-off" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+            <line x1="2" y1="2" x2="22" y2="22" stroke="#8c8282" stroke-width="2"></line>
+        </svg>
+        <!-- Playing Icon -->
+        <svg id="icon-music-on" class="w-5 h-5 hidden text-[#6b6363]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+        </svg>
+    </button>
+
+    <!-- Floating Bottom Right: Admin Profile Pill Button -->
+    <button onclick="openAdminModal()"
+            class="fixed bottom-5 right-5 z-40 soft-pill-bar px-4 py-2.5 flex items-center gap-2 text-[#6b6363] hover:scale-105 active:scale-95 transition-all cursor-pointer">
+        <svg class="w-4 h-4 text-[#7a7171]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="10" r="3"></circle>
+            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
+        </svg>
+        <span id="floating-btn-shop-name" class="text-[13px] font-bold">melou</span>
+    </button>
+
+    <!-- Toast Notification (แทนการใช้ alert) -->
+    <div id="toast-box" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+        <div id="toast-message" class="bg-[#6b6363] text-white text-[13px] px-4 py-2 rounded-full shadow-lg font-normal whitespace-nowrap">
+            บันทึกข้อมูลเรียบร้อย
+        </div>
+    </div>
+
+    <!-- Admin Modal (Login & Edit Profile / Password / Settings) -->
+    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/25 backdrop-blur-xs hidden items-center justify-center p-4">
+        <div class="soft-card w-full max-w-[400px] max-h-[88vh] overflow-y-auto p-5 space-y-4 relative animate-fadeIn">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-[#f3eded] pb-3">
+                <h3 id="modal-title" class="text-[16px] font-extrabold text-[#6b6363]">จัดการร้านค้า (Admin)</h3>
+                <button onclick="closeAdminModal()" class="w-8 h-8 rounded-full bg-[#f5f0f0] text-[#7a7171] flex items-center justify-center hover:bg-[#ebe4e4] cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- View 1: Admin Login Form -->
+            <div id="admin-login-view" class="space-y-3.5">
+                <p class="text-[13px] text-[#8a8181]">
+                    กรอกรหัสผ่านแอดมินเพื่อแก้ไขโปรไฟล์ รูปภาพ ยอดผู้ติดตาม ลบรีวิว หรือเปลี่ยนรหัสผ่าน (อัปเดตตรงกันทุกเครื่อง)
+                </p>
+                <div class="bg-[#faf5f5] border border-[#efe7e7] rounded-2xl p-3 text-[12px] text-[#8a8181]">
+                    💡 รหัสผ่านเริ่มต้นคือ: <strong class="text-[#6b6363]">1234</strong> (สามารถเปลี่ยนใหม่ได้หลังเข้าสู่ระบบ)
+                </div>
+                <div>
+                    <input type="password" id="admin-password-input" placeholder="กรอกรหัสผ่านแอดมิน..." 
+                           onkeydown="if(event.key==='Enter') verifyAdminLogin()"
+                           class="w-full px-4 py-2.5 soft-input text-[14px]">
+                </div>
+                <button onclick="verifyAdminLogin()" class="w-full py-2.5 btn-soft-gray text-[14px] font-semibold cursor-pointer">
+                    เข้าสู่ระบบแอดมิน
+                </button>
+            </div>
+
+            <!-- View 2: Admin Dashboard Form -->
+            <div id="admin-dashboard-view" class="hidden space-y-4">
+                
+                <!-- ชื่อร้าน -->
+                <div class="space-y-1">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">ชื่อร้าน</label>
+                    <input type="text" id="edit-shop-name" class="w-full px-3.5 py-2 soft-input text-[14px]">
+                </div>
+
+                <!-- รูปโปรไฟล์ (อัปโหลด หรือ URL) -->
+                <div class="space-y-1.5">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">รูปโปรไฟล์ (ใส่ลิงก์ URL หรือเลือกไฟล์รูปจากเครื่อง)</label>
+                    <input type="text" id="edit-avatar-url" placeholder="https://..." class="w-full px-3.5 py-2 soft-input text-[13px]">
+                    <label class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#f4eeee] hover:bg-[#ebe3e3] rounded-xl text-[12px] text-[#6b6363] cursor-pointer transition">
+                        <span>📁 เลือกรูปโปรไฟล์จากเครื่อง</span>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'avatar')" class="hidden">
+                    </label>
+                </div>
+
+                <!-- รูปแบนเนอร์ (อัปโหลด หรือ URL) -->
+                <div class="space-y-1.5">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">รูปแบนเนอร์ด้านบน (เว้นว่างเพื่อใช้ลายเริ่มต้น)</label>
+                    <input type="text" id="edit-banner-url" placeholder="https://... หรือเว้นว่าง" class="w-full px-3.5 py-2 soft-input text-[13px]">
+                    <div class="flex items-center gap-2">
+                        <label class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#f4eeee] hover:bg-[#ebe3e3] rounded-xl text-[12px] text-[#6b6363] cursor-pointer transition">
+                            <span>📁 เลือกรูปแบนเนอร์จากเครื่อง</span>
+                            <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner')" class="hidden">
+                        </label>
+                        <button type="button" onclick="document.getElementById('edit-banner-url').value=''" class="text-[11px] text-[#9e9595] underline cursor-pointer">
+                            ใช้ลายเริ่มต้น
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ข้อความใต้ปุ่มติดตาม -->
+                <div class="space-y-1">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">ข้อความด้านล่างการ์ด (Bio / Credit)</label>
+                    <input type="text" id="edit-bio-text" class="w-full px-3.5 py-2 soft-input text-[14px]">
+                </div>
+
+                <!-- ยอดผู้ติดตามเริ่มต้น -->
+                <div class="space-y-1">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">จำนวนผู้ติดตาม (FOLLOWERS)</label>
+                    <input type="number" id="edit-followers-count" min="0" class="w-full px-3.5 py-2 soft-input text-[14px]">
+                </div>
+
+                <!-- ลิงก์เพลงพื้นหลัง (Optional) -->
+                <div class="space-y-1">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">ลิงก์ไฟล์เพลง MP3 (เว้นว่างเพื่อใช้เสียงกล่องดนตรีในตัว)</label>
+                    <input type="text" id="edit-music-url" placeholder="https://.../song.mp3 (ไม่บังคับ)" class="w-full px-3.5 py-2 soft-input text-[13px]">
+                </div>
+
+                <!-- เปลี่ยนรหัสผ่านแอดมิน -->
+                <div class="pt-2 border-t border-[#f3eded] space-y-1">
+                    <label class="text-[12px] font-semibold text-[#7a7171]">เปลี่ยนรหัสผ่านแอดมินใหม่ (บันทึกลงฐานข้อมูลกลาง)</label>
+                    <input type="text" id="edit-admin-password" placeholder="ตั้งรหัสผ่านใหม่..." class="w-full px-3.5 py-2 soft-input text-[14px]">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="pt-2 flex flex-col gap-2">
+                    <button id="btn-save-admin" onclick="saveAdminSettings()" class="w-full py-2.5 btn-soft-gray text-[14px] font-semibold cursor-pointer">
+                        💾 บันทึกการเปลี่ยนแปลงทั้งหมด
+                    </button>
+                    <button onclick="logoutAdmin()" class="w-full py-2 text-[12px] text-[#9e9595] hover:text-[#6b6363] cursor-pointer">
+                        ออกจากโหมดแอดมิน
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hidden Audio Element สำหรับกรณีแอดมินใส่ลิงก์ MP3 เอง -->
+    <audio id="custom-bg-audio" loop preload="none"></audio>
+
+    <!-- Firebase SDK & Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 1. ตั้งค่า Firebase ตาม Environment ของระบบ
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'melou-credit-shop';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        let app, auth, db;
+        let currentUser = null;
+        let isAdminLoggedIn = false;
+        let selectedStars = 5;
+        let isMusicPlaying = false;
+        let toneLoop = null;
+        let toneSynth = null;
+
+        // สถานะข้อมูลร้านค้า (ซิงก์เรียลไทม์จาก Firestore)
+        let shopState = {
+            shopName: "melou",
+            avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80",
+            bannerUrl: "",
+            bioText: "thank you for credit ♡",
+            followers: 20,
+            adminPassword: "1234",
+            musicUrl: ""
+        };
+
+        let allReviews = [];
+
+        // ฟังก์ชันสร้างดาวและหัวใจลอยพื้นหลัง
+        function createBackgroundDoodles() {
+            const container = document.getElementById('bg-decorations');
+            const starSvg = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>`;
+            const heartSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
+            const positions = [
+                { top: '6%', left: '12%', type: 'heart', delay: '0s', scale: 0.9 },
+                { top: '14%', left: '84%', type: 'star', delay: '1.2s', scale: 1.1 },
+                { top: '26%', left: '6%', type: 'star', delay: '2.5s', scale: 0.8 },
+                { top: '34%', left: '90%', type: 'heart', delay: '0.8s', scale: 1 },
+                { top: '48%', left: '10%', type: 'heart', delay: '3s', scale: 1.1 },
+                { top: '55%', left: '86%', type: 'star', delay: '1.7s', scale: 0.95 },
+                { top: '68%', left: '8%', type: 'star', delay: '2.1s', scale: 1.05 },
+                { top: '76%', left: '88%', type: 'heart', delay: '0.4s', scale: 0.85 },
+                { top: '88%', left: '15%', type: 'heart', delay: '1.9s', scale: 1 },
+                { top: '92%', left: '80%', type: 'star', delay: '2.8s', scale: 0.9 }
+            ];
+
+            positions.forEach(pos => {
+                const el = document.createElement('div');
+                el.className = 'floating-doodle';
+                el.style.top = pos.top;
+                el.style.left = pos.left;
+                el.style.animationDelay = pos.delay;
+                el.style.transform = `scale(${pos.scale})`;
+                el.innerHTML = pos.type === 'star' ? starSvg : heartSvg;
+                container.appendChild(el);
+            });
+        }
+
+        // แสดงข้อความแจ้งเตือนนุ่มๆ ด้านบน
+        window.showToast = function(msg) {
+            const box = document.getElementById('toast-box');
+            const text = document.getElementById('toast-message');
+            text.textContent = msg;
+            box.classList.remove('opacity-0', '-translate-y-2');
+            box.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                box.classList.remove('opacity-100', 'translate-y-0');
+                box.classList.add('opacity-0', '-translate-y-2');
+            }, 2600);
+        };
+
+        // สร้างดาวสำหรับกดให้คะแนน (1-5 ดาว)
+        function renderStarSelector() {
+            const container = document.getElementById('star-selector');
+            container.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'p-1 transition-transform hover:scale-110 active:scale-95 cursor-pointer focus:outline-none';
+                btn.setAttribute('aria-label', `ให้ ${i} ดาว`);
+                const isFilled = i <= selectedStars;
+                btn.innerHTML = `
+                    <svg class="w-7 h-7 ${isFilled ? 'text-[#c9bcbc] fill-[#c9bcbc]' : 'text-[#e5dede] fill-[#e5dede]'}" viewBox="0 0 24 24">
+                        <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                    </svg>
+                `;
+                btn.onclick = () => {
+                    selectedStars = i;
+                    renderStarSelector();
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        // อัปเดต UI หน้าโปรไฟล์ทั้งหมดตามข้อมูลล่าสุด
+        function updateProfileUI() {
+            const name = shopState.shopName || 'melou';
+            document.title = `${name} — credit & reviews`;
+            document.getElementById('topbar-shop-name').textContent = name;
+            document.getElementById('profile-shop-name').textContent = name;
+            document.getElementById('banner-watermark-name').textContent = name;
+            document.getElementById('floating-btn-shop-name').textContent = name;
+            document.getElementById('footer-copyright').textContent = `© 2026 ${name}. All rights reserved.`;
+
+            // รูปโปรไฟล์
+            const avatarEl = document.getElementById('shop-avatar-img');
+            if (shopState.avatarUrl) {
+                avatarEl.src = shopState.avatarUrl;
+            }
+
+            // รูปแบนเนอร์
+            const bannerImg = document.getElementById('shop-banner-img');
+            const defaultOverlay = document.getElementById('default-banner-overlay');
+            if (shopState.bannerUrl && shopState.bannerUrl.trim() !== '') {
+                bannerImg.src = shopState.bannerUrl;
+                bannerImg.classList.remove('hidden');
+                defaultOverlay.classList.add('hidden');
+            } else {
+                bannerImg.classList.add('hidden');
+                defaultOverlay.classList.remove('hidden');
+            }
+
+            // ข้อความใต้ปุ่มติดตาม
+            document.getElementById('profile-bio-text').textContent = shopState.bioText || 'thank you for credit ♡';
+
+            // ยอดผู้ติดตาม
+            document.getElementById('stat-followers-count').textContent = shopState.followers ?? 20;
+
+            // เติมค่าลงฟอร์มแอดมิน (ถ้าเปิดอยู่)
+            document.getElementById('edit-shop-name').value = name;
+            document.getElementById('edit-avatar-url').value = shopState.avatarUrl || '';
+            document.getElementById('edit-banner-url').value = shopState.bannerUrl || '';
+            document.getElementById('edit-bio-text').value = shopState.bioText || '';
+            document.getElementById('edit-followers-count').value = shopState.followers ?? 20;
+            document.getElementById('edit-music-url').value = shopState.musicUrl || '';
+            document.getElementById('edit-admin-password').value = shopState.adminPassword || '1234';
+        }
+
+        // อัปเดตรายการรีวิวและคำนวณเปอร์เซ็นต์ดาว
+        function updateReviewsUI() {
+            const listEl = document.getElementById('reviews-list');
+            const countEl = document.getElementById('stat-reviews-count');
+            const percentEl = document.getElementById('stat-star-percentage');
+
+            countEl.textContent = allReviews.length;
+
+            if (allReviews.length === 0) {
+                percentEl.textContent = '100%';
+                listEl.innerHTML = `
+                    <div class="text-center py-8 text-[13px] text-[#a69d9d]">
+                        ยังไม่มีรีวิวในขณะนี้ มารีวิวเป็นคนแรกให้ร้าน ${escapeHtml(shopState.shopName)} กันเถอะ ♡
+                    </div>
+                `;
+                return;
+            }
+
+            // คำนวณเปอร์เซ็นต์ดาวเฉลี่ยจากรีวิวทั้งหมด
+            const totalStars = allReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+            const maxStars = allReviews.length * 5;
+            const percentage = Math.round((totalStars / maxStars) * 100);
+            percentEl.textContent = `${percentage}%`;
+
+            // เรียงจากใหม่ไปเก่า (createdAt มากไปน้อย)
+            const sorted = [...allReviews].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            listEl.innerHTML = sorted.map(rev => {
+                const rating = Math.min(5, Math.max(1, Number(rev.rating) || 5));
+                let starsHtml = '';
+                for (let s = 1; s <= 5; s++) {
+                    const filled = s <= rating;
+                    starsHtml += `
+                        <svg class="w-3.5 h-3.5 ${filled ? 'text-[#c9bcbc] fill-[#c9bcbc]' : 'text-[#ece6e6] fill-[#ece6e6]'}" viewBox="0 0 24 24">
+                            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                        </svg>
+                    `;
+                }
+
+                const deleteBtnHtml = isAdminLoggedIn ? `
+                    <button onclick="deleteReview('${rev.id}')" title="ลบรีวิวนี้"
+                            class="ml-2 text-[#b88b8b] hover:text-red-500 bg-[#faf2f2] hover:bg-red-50 px-2 py-0.5 rounded-lg text-[11px] transition cursor-pointer">
+                        ลบ
+                    </button>
+                ` : '';
+
+                return `
+                    <div class="soft-inner-card p-4 space-y-1.5 transition-all">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-[14px] font-extrabold text-[#6b6363]">${escapeHtml(rev.name || 'ผู้เยี่ยมชม')}</span>
+                                <div class="flex items-center gap-0.5">${starsHtml}</div>
+                            </div>
+                            <div class="flex items-center shrink-0">
+                                <span class="text-[11px] text-[#b0a7a7] font-normal">${escapeHtml(rev.dateStr || '')}</span>
+                                ${deleteBtnHtml}
+                            </div>
+                        </div>
+                        <p class="text-[13px] text-[#7a7171] font-normal leading-relaxed break-words">
+                            ${escapeHtml(rev.comment || '')}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // รูปแบบวันที่ DD/MM/YYYY
+        function getFormattedToday() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
+
+        // เริ่มต้นเชื่อมต่อ Firebase & Sync ข้อมูล
+        async function initFirebase() {
+            if (!firebaseConfig) {
+                console.warn("Firebase config not found.");
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // RULE 3: Auth ก่อนทำ Query เสมอ
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                currentUser = auth.currentUser;
+                if (!currentUser) return;
+
+                // RULE 1: ใช้ Path มาตรฐาน /artifacts/{appId}/public/data/{collectionName}
+                const profileDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop_settings', 'main_profile');
+                const reviewsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'shop_reviews');
+
+                // ตรวจสอบว่ามีข้อมูลโปรไฟล์เริ่มต้นในฐานข้อมูลหรือยัง ถ้ายังไม่มีให้สร้าง
+                const snap = await getDoc(profileDocRef);
+                if (!snap.exists()) {
+                    await setDoc(profileDocRef, shopState);
+                    // เพิ่มรีวิวตัวอย่างน่ารักๆ เริ่มต้นให้ 3 รายการ
+                    const sampleReviews = [
+                        { name: "s", rating: 5, comment: "บริการดี งานไวค่ะ", dateStr: "17/11/2026", createdAt: Date.now() - 10000 },
+                        { name: "uta", rating: 5, comment: "แม่ค้าน่ารักมากค่ะ งานไว", dateStr: "17/11/2026", createdAt: Date.now() - 20000 },
+                        { name: "bunny", rating: 5, comment: "แม่ค้าน่ารักมากคับบ ไว้ใจได้ค่ะ >.<", dateStr: "17/11/2026", createdAt: Date.now() - 30000 }
+                    ];
+                    for (const item of sampleReviews) {
+                        await addDoc(reviewsColRef, item);
+                    }
+                }
+
+                // ฟังการเปลี่ยนแปลงข้อมูลร้านค้าแบบเรียลไทม์ (Real-time listener)
+                onSnapshot(profileDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        shopState = { ...shopState, ...docSnap.data() };
+                        updateProfileUI();
+                    }
+                }, (error) => {
+                    console.error("Profile sync error:", error);
+                });
+
+                // ฟังการเปลี่ยนแปลงรายการรีวิวแบบเรียลไทม์ (RULE 2: ไม่ใช้ orderBy ใน query แล้ว sort ใน JS)
+                onSnapshot(reviewsColRef, (querySnap) => {
+                    const items = [];
+                    querySnap.forEach((docItem) => {
+                        items.push({ id: docItem.id, ...docItem.data() });
+                    });
+                    allReviews = items;
+                    updateReviewsUI();
+                }, (error) => {
+                    console.error("Reviews sync error:", error);
+                });
+
+            } catch (err) {
+                console.error("Firebase init failed:", err);
+                showToast("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองรีเฟรช");
+            }
+        }
+
+        // กดติดตาม / ยกเลิกติดตาม (อัปเดตยอด Followers ลงฐานข้อมูลกลางทันที)
+        let isFollowedSession = false;
+        window.toggleFollow = async function() {
+            if (!currentUser || !db) return;
+            const btn = document.getElementById('btn-follow');
+            const profileDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop_settings', 'main_profile');
+
+            isFollowedSession = !isFollowedSession;
+            const currentCount = Number(shopState.followers) || 0;
+            const newCount = isFollowedSession ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+            btn.textContent = isFollowedSession ? 'ติดตามแล้ว ♡' : 'ติดตาม';
+            btn.style.backgroundColor = isFollowedSession ? '#e6dede' : '#d8d5d5';
+
+            try {
+                await updateDoc(profileDocRef, { followers: newCount });
+                showToast(isFollowedSession ? `ติดตามร้าน ${shopState.shopName} แล้ว ♡` : 'ยกเลิกการติดตามแล้ว');
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        // ส่งรีวิวใหม่ลงฐานข้อมูลกลาง
+        window.submitReview = async function() {
+            if (!currentUser || !db) {
+                showToast("กำลังเชื่อมต่อระบบ กรุณารอสักครู่...");
+                return;
+            }
+
+            const nameInput = document.getElementById('input-reviewer-name');
+            const commentInput = document.getElementById('input-review-comment');
+            const btn = document.getElementById('btn-submit-review');
+
+            const comment = commentInput.value.trim();
+            if (!comment) {
+                showToast("กรุณาพิมพ์ข้อความรีวิวก่อนส่งนะคะ ♡");
+                commentInput.focus();
+                return;
+            }
+
+            const reviewerName = nameInput.value.trim() || 'ผู้เยี่ยมชม';
+            btn.disabled = true;
+            btn.textContent = 'กำลังส่งรีวิว...';
+
+            try {
+                const reviewsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'shop_reviews');
+                await addDoc(reviewsColRef, {
+                    name: reviewerName,
+                    rating: selectedStars,
+                    comment: comment,
+                    dateStr: getFormattedToday(),
+                    createdAt: Date.now()
+                });
+
+                nameInput.value = '';
+                commentInput.value = '';
+                selectedStars = 5;
+                renderStarSelector();
+                showToast("ส่งรีวิวเรียบร้อย ขอบคุณสำหรับเครดิตค่ะ ♡");
+            } catch (err) {
+                console.error("Submit review error:", err);
+                showToast("เกิดข้อผิดพลาดในการส่งรีวิว");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'ส่งรีวิว';
+            }
+        };
+
+        // ลบรีวิว (เฉพาะโหมดแอดมิน)
+        window.deleteReview = async function(reviewId) {
+            if (!isAdminLoggedIn || !currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop_reviews', reviewId);
+                await deleteDoc(docRef);
+                showToast("ลบรีวิวเรียบร้อยแล้ว");
+            } catch (err) {
+                console.error("Delete error:", err);
+                showToast("ไม่สามารถลบรีวิวได้");
+            }
+        };
+
+        // จัดการหน้าต่าง Modal แอดมิน
+        window.openAdminModal = function() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (isAdminLoggedIn) {
+                document.getElementById('admin-login-view').classList.add('hidden');
+                document.getElementById('admin-dashboard-view').classList.remove('hidden');
+                updateProfileUI();
+            } else {
+                document.getElementById('admin-login-view').classList.remove('hidden');
+                document.getElementById('admin-dashboard-view').classList.add('hidden');
+                document.getElementById('admin-password-input').value = '';
+                setTimeout(() => document.getElementById('admin-password-input').focus(), 100);
+            }
+        };
+
+        window.closeAdminModal = function() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        // ตรวจสอบรหัสผ่านแอดมินจากฐานข้อมูลกลาง
+        window.verifyAdminLogin = function() {
+            const inputPass = document.getElementById('admin-password-input').value;
+            const actualPass = shopState.adminPassword || '1234';
+
+            if (inputPass === actualPass) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login-view').classList.add('hidden');
+                document.getElementById('admin-dashboard-view').classList.remove('hidden');
+                document.getElementById('admin-badge-hint').classList.remove('hidden');
+                updateProfileUI();
+                updateReviewsUI();
+                showToast("เข้าสู่ระบบแอดมินสำเร็จ ♡");
+            } else {
+                showToast("รหัสผ่านไม่ถูกต้อง ลองใหม่อีกครั้งนะคะ");
+            }
+        };
+
+        window.logoutAdmin = function() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-badge-hint').classList.add('hidden');
+            updateReviewsUI();
+            closeAdminModal();
+            showToast("ออกจากโหมดแอดมินแล้ว");
+        };
+
+        // อัปโหลดรูปภาพจากเครื่องและย่อขนาดอัตโนมัติ (เพื่อให้เก็บใน Firestore ได้รวดเร็วและไม่เกินขนาด)
+        window.handleImageUpload = function(event, targetType) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = targetType === 'avatar' ? 360 : 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                    if (targetType === 'avatar') {
+                        document.getElementById('edit-avatar-url').value = compressedDataUrl;
+                    } else {
+                        document.getElementById('edit-banner-url').value = compressedDataUrl;
+                    }
+                    showToast("โหลดรูปภาพสำเร็จ กดบันทึกด้านล่างเพื่ออัปเดต");
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // บันทึกการตั้งค่าร้านค้าและรหัสผ่านแอดมินลง Firebase Firestore
+        window.saveAdminSettings = async function() {
+            if (!isAdminLoggedIn || !currentUser || !db) return;
+
+            const btn = document.getElementById('btn-save-admin');
+            btn.disabled = true;
+            btn.textContent = 'กำลังบันทึกขึ้นระบบกลาง...';
+
+            const newShopName = document.getElementById('edit-shop-name').value.trim() || 'melou';
+            const newAvatarUrl = document.getElementById('edit-avatar-url').value.trim();
+            const newBannerUrl = document.getElementById('edit-banner-url').value.trim();
+            const newBioText = document.getElementById('edit-bio-text').value.trim();
+            const newFollowers = Math.max(0, parseInt(document.getElementById('edit-followers-count').value) || 0);
+            const newMusicUrl = document.getElementById('edit-music-url').value.trim();
+            const newPassword = document.getElementById('edit-admin-password').value.trim() || '1234';
+
+            try {
+                const profileDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop_settings', 'main_profile');
+                await setDoc(profileDocRef, {
+                    shopName: newShopName,
+                    avatarUrl: newAvatarUrl,
+                    bannerUrl: newBannerUrl,
+                    bioText: newBioText,
+                    followers: newFollowers,
+                    musicUrl: newMusicUrl,
+                    adminPassword: newPassword
+                }, { merge: true });
+
+                showToast("บันทึกข้อมูลเรียบร้อย! อัปเดตตรงกันทุกเครื่องแล้ว ♡");
+                closeAdminModal();
+            } catch (err) {
+                console.error("Save settings error:", err);
+                showToast("เกิดข้อผิดพลาดในการบันทึก (รูปอาจใหญ่เกินไป)");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 บันทึกการเปลี่ยนแปลงทั้งหมด';
+            }
+        };
+
+        // ระบบเปิด/ปิดเสียงเพลงบรรเลงน่ารักๆ (ใช้ Tone.js กล่องดนตรี หรือ MP3 ที่แอดมินใส่)
+        window.toggleMusic = async function() {
+            const iconOff = document.getElementById('icon-music-off');
+            const iconOn = document.getElementById('icon-music-on');
+            const customAudio = document.getElementById('custom-bg-audio');
+
+            isMusicPlaying = !isMusicPlaying;
+
+            if (isMusicPlaying) {
+                iconOff.classList.add('hidden');
+                iconOn.classList.remove('hidden');
+
+                // ถ้าแอดมินตั้งลิงก์เพลง MP3 ไว้ ให้เล่นเพลงนั้น
+                if (shopState.musicUrl && shopState.musicUrl.trim() !== '') {
+                    customAudio.src = shopState.musicUrl;
+                    customAudio.volume = 0.35;
+                    customAudio.play().catch(() => {});
+                } else {
+                    // เล่นเสียงกล่องดนตรี Lullaby น่ารักๆ ด้วย Tone.js
+                    await Tone.start();
+                    if (!toneSynth) {
+                        toneSynth = new Tone.PolySynth(Tone.Synth, {
+                            oscillator: { type: "sine" },
+                            envelope: { attack: 0.08, decay: 0.4, sustain: 0.2, release: 1.5 }
+                        }).toDestination();
+                        toneSynth.volume.value = -14;
+
+                        const notes = ["C5", "E5", "G5", "B5", "A5", "G5", "E5", "D5"];
+                        let idx = 0;
+                        toneLoop = new Tone.Loop((time) => {
+                            toneSynth.triggerAttackRelease(notes[idx % notes.length], "4n", time);
+                            idx++;
+                        }, "2n");
+                    }
+                    Tone.Transport.start();
+                    toneLoop.start(0);
+                }
+                showToast("เปิดเสียงเพลงบรรเลง ♪");
+            } else {
+                iconOn.classList.add('hidden');
+                iconOff.classList.remove('hidden');
+                customAudio.pause();
+                if (toneLoop) {
+                    toneLoop.stop();
+                    Tone.Transport.stop();
+                }
+                showToast("ปิดเสียงเพลงแล้ว");
+            }
+        };
+
+        // เริ่มทำงานเมื่อโหลดหน้าเว็บเสร็จ
+        window.addEventListener('DOMContentLoaded', () => {
+            createBackgroundDoodles();
+            renderStarSelector();
+            updateProfileUI();
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
